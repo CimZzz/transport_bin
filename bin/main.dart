@@ -2,6 +2,8 @@ import 'package:console_cmd/console_cmd.dart';
 import 'package:transport/transport.dart';
 import 'package:transport_bin/option.dart';
 
+const kVersion = '1.0.1';
+
 void main(List<String> arguments) {
 	if (arguments.isEmpty) {
 		printUnknown(null);
@@ -61,6 +63,16 @@ void main(List<String> arguments) {
 					info: 'local server port'
 				),
 
+				// port
+				Option(
+					optionName: [
+						'--allow-cache', '-ac'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'allowCache',
+					info: 'allow cache source socket, use for http client which want keep connecting...'
+				),
+
 				// remote port
 				Option(
 					optionName: [
@@ -94,6 +106,7 @@ void main(List<String> arguments) {
 				int port = valueMap['port'];
 				String rAddress = valueMap['remoteAddress'];
 				int rPort = valueMap['remotePort'];
+				final allowCache = valueMap.containsKey('allowCache');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -103,15 +116,14 @@ void main(List<String> arguments) {
 					printLackParam(root.selectName, '--remote-port');
 					return;
 				}
-				final server = TransportProxyServer(
+				TransportProxyServer(
 					localPort: port,
+					allowCache: allowCache,
 					remoteAddress: rAddress,
 					remotePort: rPort,
-				);
-				server.logInterface = ConsoleLogInterface();
-				server.startServer().then((value) {
-					ANSIPrinter().print('Proxy Server listener on $port...');
-				});
+				)
+				..logInterface = ConsoleLogInterface()
+				..startServer();
 			}
 		),
 
@@ -245,7 +257,7 @@ void main(List<String> arguments) {
 					return;
 				}
 
-				final server = TransportServer(
+				TransportServer(
 					localPort: port,
 					topic: topic,
 					remoteTopic: remoteTopic,
@@ -253,9 +265,9 @@ void main(List<String> arguments) {
 					transportPort: transportPort,
 					bridgeAddress: bridgeAddress,
 					bridgePort: bridgePort,
-				);
-				server.logInterface = ConsoleLogInterface();
-				server.startServer();
+				)
+				..logInterface = ConsoleLogInterface()
+				..startServer();
 			}
 		),
 
@@ -372,6 +384,11 @@ void main(List<String> arguments) {
 					only = true;
 				}
 			}
+
+			if(currentOption.optionType == OptionType.Type_None) {
+				rootOption.addOption(currentOption.valueName, null);
+				isOver = true;
+			}
 		}
 		else {
 			switch (currentOption.optionType) {
@@ -400,10 +417,7 @@ void main(List<String> arguments) {
 	}
 
 	if (currentOption != null) {
-		if (currentOption.optionType == OptionType.Type_None) {
-			rootOption.addOption(currentOption.valueName, null);
-		}
-		else {
+		if (currentOption.optionType != OptionType.Type_None) {
 			printLackParam(rootOption.selectName, currentOption.selectName);
 			return;
 		}
@@ -500,7 +514,7 @@ void printRootHelp(RootOption rootOption) {
 }
 
 void printVersion() {
-	ANSIPrinter()..printRGB('transport, author CimZzz, version code 1.0.0')
+	ANSIPrinter()..printRGB('transport, author CimZzz, version code $kVersion')
 	..print('')
 	..printRGB('contact with me: a1950207@gmail.com')
 	..print('');
