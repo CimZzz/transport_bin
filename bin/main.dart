@@ -516,8 +516,7 @@ void printRootHelp(RootOption rootOption) {
 void printVersion() {
 	ANSIPrinter()..printRGB('transport, author CimZzz, version code $kVersion')
 	..print('')
-	..printRGB('contact with me: a1950207@gmail.com')
-	..print('');
+	..printRGB('contact with me: a1950207@gmail.com');
 }
 
 
