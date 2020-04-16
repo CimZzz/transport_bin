@@ -10,6 +10,18 @@ void main(List<String> arguments) {
 
 	List<RootOption> rootOptionList;
 	rootOptionList = <RootOption>[
+		// version
+		RootOption(
+			optionName: [
+				'--version', '-v', '-version'
+			],
+			optionList: null,
+			info: 'show tansport version',
+			rootHandle: (_1, _2) {
+				printVersion();
+			}
+		),
+
 		// help
 		RootOption(
 			optionName: [
@@ -69,7 +81,7 @@ void main(List<String> arguments) {
 					info: 'remote server address, default 127.0.0.1'
 				)
 			],
-			info: 'start a proxy server, transport socket to socket directly',
+			info: 'start a proxy transport server, transport socket to socket directly',
 			rootHandle: (root, valueMap) {
 				if (valueMap == null) {
 					printUnknown(null, whose: root.selectName);
@@ -450,18 +462,13 @@ void printMustOnly(String whose, String option) {
 	ANSIPrinter().printRGB('Error: `$whose $option` must only', fColor: 0xFF0000);
 }
 
-//void printHelpInfo(String command, String info) {
-//	print('${spaceString(command, 48)}$info');
-//}
-
 void printHelp(List<RootOption> rootOptions) {
 	ANSIPrinter()
 		..print('')..print('transport usage: ')..print('');
 
 	for (final option in rootOptions) {
 		ANSIPrinter()
-			..printRGB('${spaceString(option.optionName.join(', '), 48)}', breakLine: false)..printRGB(': ${option.info}')
-			..print('');
+			..printRGB('${spaceString(option.optionName.join(', '), 48)}', breakLine: false)..printRGB(' ${option.info}');
 	}
 
 
@@ -486,11 +493,17 @@ void printRootHelp(RootOption rootOption) {
 				break;
 		}
 		ANSIPrinter()
-			..printRGB('${spaceString('${option.optionName.join(', ')} $valueName', 48)}', breakLine: false)..printRGB(': ${option.info}')
-			..print('');
+			..printRGB('${spaceString('${option.optionName.join(', ')} $valueName', 48)}', breakLine: false)..printRGB(' ${option.info}');
 	}
 
 	ANSIPrinter()..print('');
+}
+
+void printVersion() {
+	ANSIPrinter()..printRGB('transport, author CimZzz, version code 1.0.0')
+	..print('')
+	..printRGB('contact with me: a1950207@gmail.com')
+	..print('');
 }
 
 
