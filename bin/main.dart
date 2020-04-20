@@ -2,7 +2,7 @@ import 'package:console_cmd/console_cmd.dart';
 import 'package:transport/transport.dart';
 import 'package:transport_bin/option.dart';
 
-const kVersion = '1.0.1';
+const kVersion = '1.0.2';
 
 void main(List<String> arguments) {
 	if (arguments.isEmpty) {
@@ -63,16 +63,6 @@ void main(List<String> arguments) {
 					info: 'local server port'
 				),
 
-				// port
-				Option(
-					optionName: [
-						'--allow-cache', '-ac'
-					],
-					optionType: OptionType.Type_None,
-					valueName: 'allowCache',
-					info: 'allow cache source socket, use for http client which want keep connecting...'
-				),
-
 				// remote port
 				Option(
 					optionName: [
@@ -106,7 +96,6 @@ void main(List<String> arguments) {
 				int port = valueMap['port'];
 				String rAddress = valueMap['remoteAddress'];
 				int rPort = valueMap['remotePort'];
-				final allowCache = valueMap.containsKey('allowCache');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -116,14 +105,94 @@ void main(List<String> arguments) {
 					printLackParam(root.selectName, '--remote-port');
 					return;
 				}
-				TransportProxyServer(
+
+				TransportServer(
 					localPort: port,
-					allowCache: allowCache,
-					remoteAddress: rAddress,
-					remotePort: rPort,
+					transaction: ProxyTransaction(
+						logInterface: const ConsoleLogInterface(),
+						remoteAddress: rAddress,
+						remotePort: rPort,
+					)
 				)
-				..logInterface = ConsoleLogInterface()
-				..startServer();
+					..startServer();
+			}
+		),
+
+		// http proxy server
+		RootOption(
+			optionName: [
+				'-http-proxy', '--http-proxy-server'
+			],
+			optionList: [
+				// help
+				Option(
+					optionName: [
+						'-h', '-help', '-H', '--help', '-?'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'help',
+					mustOnly: true,
+					info: 'show http proxy server usage'
+				),
+
+				// port
+				Option(
+					optionName: [
+						'--port', '-p'
+					],
+					optionType: OptionType.Type_Int,
+					valueName: 'port',
+					info: 'local server port'
+				),
+
+				// client port
+				Option(
+					optionName: [
+						'--client-port', '-cp'
+					],
+					optionType: OptionType.Type_Int,
+					valueName: 'clientPort',
+					info: 'bridge client server port, when config this parameter, http proxy will transport data via bridge client, and bridge client must support \'-custom-address\' feature'
+				),
+
+				// client address
+				Option(
+					optionName: [
+						'--client-address', '-ca'
+					],
+					optionType: OptionType.Type_String,
+					valueName: 'clientAddress',
+					info: 'bridge client server address, when config this parameter, http proxy will transport data via bridge client, and bridge client must support \'-custom-address\' feature'
+				)
+			],
+			info: 'start a http proxy transport server',
+			rootHandle: (root, valueMap) {
+				if (valueMap == null) {
+					printUnknown(null, whose: root.selectName);
+					return;
+				}
+				if (valueMap.containsKey('help')) {
+					printRootHelp(root);
+					return;
+				}
+				int port = valueMap['port'];
+				String clientAddress = valueMap['clientAddress'];
+				int clientPort = valueMap['clientPort'];
+
+				if (port == null) {
+					printLackParam(root.selectName, '--port');
+					return;
+				}
+
+				TransportServer(
+					localPort: port,
+					transaction: HttpProxyTransaction(
+						logInterface: const ConsoleLogInterface(),
+						bridgeClientAddress: clientAddress,
+						bridgeClientPort: clientPort,
+					)
+				)
+					..startServer();
 			}
 		),
 
@@ -181,7 +250,7 @@ void main(List<String> arguments) {
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'transportPort',
-					info: 'transport server port'
+					info: 'transport server port, default 80'
 				),
 
 				// transport address
@@ -213,6 +282,26 @@ void main(List<String> arguments) {
 					valueName: 'bridgeAddress',
 					info: 'bridge server address'
 				),
+
+				// custom address
+				Option(
+					optionName: [
+						'--custom-address', '-cusaddr'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'customAddress',
+					info: 'Allow socket specify transport address and port, but must support data format'
+				),
+
+				// rsa public key path
+				Option(
+					optionName: [
+						'--rsa-public', '-rsa'
+					],
+					optionType: OptionType.Type_String,
+					valueName: 'rsaPublic',
+					info: 'RSA Public key file path'
+				),
 			],
 			info: 'start a transport server, via transport bridge server, reach which server bound specify topic, and other transport server also can reach this server by topic',
 			rootHandle: (root, valueMap) {
@@ -231,6 +320,8 @@ void main(List<String> arguments) {
 				int transportPort = valueMap['transportPort'];
 				String bridgeAddress = valueMap['bridgeAddress'];
 				int bridgePort = valueMap['bridgePort'];
+				var customAddress = valueMap.containsKey('customAddress');
+				String rsaPublic = valueMap['rsaPublic'];
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -257,17 +348,23 @@ void main(List<String> arguments) {
 					return;
 				}
 
+
 				TransportServer(
 					localPort: port,
-					topic: topic,
-					remoteTopic: remoteTopic,
-					transportAddress: transportAddress,
-					transportPort: transportPort,
-					bridgeAddress: bridgeAddress,
-					bridgePort: bridgePort,
+					transaction: BridgeClientTransaction(
+						logInterface: ConsoleLogInterface(),
+						topic: topic,
+						remoteTopic: remoteTopic,
+						transportAddress: transportAddress,
+						transportPort: transportPort,
+						isCustomTransport: customAddress,
+						bridgeAddress: bridgeAddress,
+						bridgePort: bridgePort,
+						rsaPublicKeyPath: rsaPublic,
+					)
 				)
-				..logInterface = ConsoleLogInterface()
 				..startServer();
+
 			}
 		),
 
@@ -298,6 +395,16 @@ void main(List<String> arguments) {
 					valueName: 'port',
 					info: 'local server port'
 				),
+
+				// rsa private key path
+				Option(
+					optionName: [
+						'--rsa-private', '-rsa'
+					],
+					optionType: OptionType.Type_String,
+					valueName: 'rsaPrivate',
+					info: 'RSA Private key file path'
+				),
 			],
 			info: 'start a transport bridge server, allow transport server connected this can access each other',
 			rootHandle: (root, valueMap) {
@@ -310,16 +417,20 @@ void main(List<String> arguments) {
 					return;
 				}
 				int port = valueMap['port'];
+				String rsaPrivate = valueMap['rsaPrivate'];
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
 					return;
 				}
 
-				TransportBridge(
-					localPort: port
+				TransportServer(
+					localPort: port,
+					transaction: BridgeServerTransaction(
+						logInterface: const ConsoleLogInterface(),
+						rsaPrivateKeyPath: rsaPrivate
+					)
 				)
-				..logInterface = ConsoleLogInterface()
 				..startServer();
 			}
 		),
@@ -514,9 +625,13 @@ void printRootHelp(RootOption rootOption) {
 }
 
 void printVersion() {
-	ANSIPrinter()..printRGB('transport, author CimZzz, version code $kVersion')
-	..print('')
-	..printRGB('contact with me: a1950207@gmail.com');
+	ANSIPrinter()..print('transport, author CimZzz, version code ', breakLine: false)
+	..printRGB('$kVersion', fColor: 0x00BF00, bColor: 0xFFFFFF)
+	..print('base on ', breakLine: false)
+	..printRGB('transport: 1.0.5', fColor: 0x00BF00, bColor: 0xFFFFFF)
+	..print('contact with me:', breakLine: false)
+	..printRGB('a1950207@gmail.com', fColor: 0x00BF00, bColor: 0xFFFFFF)
+	..print('');
 }
 
 
