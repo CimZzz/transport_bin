@@ -435,7 +435,7 @@ void main(List<String> arguments) {
 		// transport bridge
 		RootOption(
 			optionName: [
-				'-tbc', '-transport-bridge'
+				'-tbs', '-transport-bridge'
 			],
 			optionList: [
 				// help
