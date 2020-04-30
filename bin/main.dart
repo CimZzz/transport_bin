@@ -2,7 +2,7 @@ import 'package:console_cmd/console_cmd.dart';
 import 'package:transport/transport.dart';
 import 'package:transport_bin/option.dart';
 
-const kVersion = '1.0.2';
+const kVersion = '1.0.3';
 
 void main(List<String> arguments) {
 	if (arguments.isEmpty) {
@@ -39,7 +39,7 @@ void main(List<String> arguments) {
 		// proxy server
 		RootOption(
 			optionName: [
-				'-proxy', '--proxy-server'
+				'-ps', '-proxy', '--proxy-server'
 			],
 			optionList: [
 				// help
@@ -56,7 +56,7 @@ void main(List<String> arguments) {
 				// port
 				Option(
 					optionName: [
-						'--port', '-p'
+						'-p', '--port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'port',
@@ -66,7 +66,7 @@ void main(List<String> arguments) {
 				// remote port
 				Option(
 					optionName: [
-						'--remote-port', '-rp'
+						'-rp', '--remote-port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'remotePort',
@@ -76,12 +76,22 @@ void main(List<String> arguments) {
 				// remote address
 				Option(
 					optionName: [
-						'--remote-address', '-ra'
+						'-ra', '--remote-address'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'remoteAddress',
 					info: 'remote server address, default 127.0.0.1'
-				)
+				),
+
+				// listen on intranet
+				Option(
+					optionName: [
+						'-local', '--listen-on-local'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'local',
+					info: 'Server will listen on intranet, extranet not access'
+				),
 			],
 			info: 'start a proxy transport server, transport socket to socket directly',
 			rootHandle: (root, valueMap) {
@@ -96,6 +106,7 @@ void main(List<String> arguments) {
 				int port = valueMap['port'];
 				String rAddress = valueMap['remoteAddress'];
 				int rPort = valueMap['remotePort'];
+				final local = valueMap.containsKey('local');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -107,6 +118,7 @@ void main(List<String> arguments) {
 				}
 
 				TransportServer(
+					isLocal: local,
 					localPort: port,
 					transaction: ProxyTransaction(
 						logInterface: const ConsoleLogInterface(),
@@ -121,7 +133,7 @@ void main(List<String> arguments) {
 		// http proxy server
 		RootOption(
 			optionName: [
-				'-http-proxy', '--http-proxy-server'
+				'-hps', '-http-proxy', '--http-proxy-server'
 			],
 			optionList: [
 				// help
@@ -138,7 +150,7 @@ void main(List<String> arguments) {
 				// port
 				Option(
 					optionName: [
-						'--port', '-p'
+						'-p', '--port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'port',
@@ -148,7 +160,7 @@ void main(List<String> arguments) {
 				// client port
 				Option(
 					optionName: [
-						'--client-port', '-cp'
+						'-cp', '--client-port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'clientPort',
@@ -158,12 +170,22 @@ void main(List<String> arguments) {
 				// client address
 				Option(
 					optionName: [
-						'--client-address', '-ca'
+						'-ca', '--client-address'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'clientAddress',
 					info: 'bridge client server address, when config this parameter, http proxy will transport data via bridge client, and bridge client must support \'-custom-address\' feature'
-				)
+				),
+
+				// listen on intranet
+				Option(
+					optionName: [
+						'-local', '--listen-on-local'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'local',
+					info: 'Server will listen on intranet, extranet not access'
+				),
 			],
 			info: 'start a http proxy transport server',
 			rootHandle: (root, valueMap) {
@@ -178,6 +200,7 @@ void main(List<String> arguments) {
 				int port = valueMap['port'];
 				String clientAddress = valueMap['clientAddress'];
 				int clientPort = valueMap['clientPort'];
+				final local = valueMap.containsKey('local');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -185,6 +208,7 @@ void main(List<String> arguments) {
 				}
 
 				TransportServer(
+					isLocal: local,
 					localPort: port,
 					transaction: HttpProxyTransaction(
 						logInterface: const ConsoleLogInterface(),
@@ -196,10 +220,10 @@ void main(List<String> arguments) {
 			}
 		),
 
-		// transport server
+		// transport client
 		RootOption(
 			optionName: [
-				'-transport-server'
+				'-tcs', '--transport-client'
 			],
 			optionList: [
 				// help
@@ -216,7 +240,7 @@ void main(List<String> arguments) {
 				// port
 				Option(
 					optionName: [
-						'--port', '-p'
+						'-p', '--port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'port',
@@ -226,7 +250,7 @@ void main(List<String> arguments) {
 				// topic
 				Option(
 					optionName: [
-						'--topic', '-t'
+						'-t', '--topic'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'topic',
@@ -236,7 +260,7 @@ void main(List<String> arguments) {
 				// remote topic
 				Option(
 					optionName: [
-						'--remote-topic', '-rt'
+						'-rt', '--remote-topic'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'remoteTopic',
@@ -246,7 +270,7 @@ void main(List<String> arguments) {
 				// transport port
 				Option(
 					optionName: [
-						'--transport-port', '-tp'
+						'-tp', '--transport-port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'transportPort',
@@ -256,7 +280,7 @@ void main(List<String> arguments) {
 				// transport address
 				Option(
 					optionName: [
-						'--transport-address', '-ta'
+						'-ta', '--transport-address'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'transportAddress',
@@ -266,7 +290,7 @@ void main(List<String> arguments) {
 				// bridge port
 				Option(
 					optionName: [
-						'--bridge-port', '-bp'
+						'-bp', '--bridge-port'
 					],
 					optionType: OptionType.Type_Int,
 					valueName: 'bridgePort',
@@ -276,17 +300,37 @@ void main(List<String> arguments) {
 				// bridge address
 				Option(
 					optionName: [
-						'--bridge-address', '-ba'
+						'-ba', '--bridge-address'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'bridgeAddress',
 					info: 'bridge server address'
 				),
 
+				// peer port
+				Option(
+					optionName: [
+						'-pp', '--peer-port'
+					],
+					optionType: OptionType.Type_Int,
+					valueName: 'peerPort',
+					info: 'Peer client transport port (Peer client must support \`customAddress\` feature)'
+				),
+
+				// peer address
+				Option(
+					optionName: [
+						'-pa', '--peer-address'
+					],
+					optionType: OptionType.Type_String,
+					valueName: 'peerAddress',
+					info: 'Peer client transport address (Peer client must support \`customAddress\` feature)'
+				),
+
 				// custom address
 				Option(
 					optionName: [
-						'--custom-address', '-cusaddr'
+						'-cusaddr', '--custom-address'
 					],
 					optionType: OptionType.Type_None,
 					valueName: 'customAddress',
@@ -296,14 +340,24 @@ void main(List<String> arguments) {
 				// rsa public key path
 				Option(
 					optionName: [
-						'--rsa-public', '-rsa'
+						'-rsa', '--rsa-public'
 					],
 					optionType: OptionType.Type_String,
 					valueName: 'rsaPublic',
 					info: 'RSA Public key file path'
 				),
+
+				// listen on intranet
+				Option(
+					optionName: [
+						'-local', '--listen-on-local'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'local',
+					info: 'Server will listen on intranet, extranet not access'
+				),
 			],
-			info: 'start a transport server, via transport bridge server, reach which server bound specify topic, and other transport server also can reach this server by topic',
+			info: 'start a transport client server, via transport bridge server, reach which server bound specify topic, and other transport server also can reach this server by topic',
 			rootHandle: (root, valueMap) {
 				if (valueMap == null) {
 					printUnknown(null, whose: root.selectName);
@@ -320,36 +374,45 @@ void main(List<String> arguments) {
 				int transportPort = valueMap['transportPort'];
 				String bridgeAddress = valueMap['bridgeAddress'];
 				int bridgePort = valueMap['bridgePort'];
+				String peerAddress = valueMap['peerAddress'];
+				int peerPort = valueMap['peerPort'];
 				var customAddress = valueMap.containsKey('customAddress');
 				String rsaPublic = valueMap['rsaPublic'];
+				final local = valueMap.containsKey('local');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
 					return;
 				}
+
 				if (topic == null) {
 					printLackParam(root.selectName, '--topic');
 					return;
 				}
+
 				if (remoteTopic == null) {
 					printLackParam(root.selectName, '--remote-topic');
 					return;
 				}
-				if (transportPort == null) {
-					printLackParam(root.selectName, '--transport-port');
-					return;
-				}
+
 				if (bridgeAddress == null) {
 					printLackParam(root.selectName, '--bridge-address');
 					return;
 				}
+
 				if (bridgePort == null) {
 					printLackParam(root.selectName, '--bridge-port');
 					return;
 				}
 
+				final isPeerCustomTransport = peerAddress != null || peerPort != null;
+
+				if(!customAddress && transportAddress == null && transportPort == null) {
+					printWarn('This client do not support transport...');
+				}
 
 				TransportServer(
+					isLocal: local,
 					localPort: port,
 					transaction: BridgeClientTransaction(
 						logInterface: ConsoleLogInterface(),
@@ -360,6 +423,7 @@ void main(List<String> arguments) {
 						isCustomTransport: customAddress,
 						bridgeAddress: bridgeAddress,
 						bridgePort: bridgePort,
+						isPeerCustomTransport: isPeerCustomTransport,
 						rsaPublicKeyPath: rsaPublic,
 					)
 				)
@@ -368,11 +432,10 @@ void main(List<String> arguments) {
 			}
 		),
 
-
 		// transport bridge
 		RootOption(
 			optionName: [
-				'-transport-bridge'
+				'-tbc', '-transport-bridge'
 			],
 			optionList: [
 				// help
@@ -405,6 +468,16 @@ void main(List<String> arguments) {
 					valueName: 'rsaPrivate',
 					info: 'RSA Private key file path'
 				),
+
+				// listen on intranet
+				Option(
+					optionName: [
+						'-local', '--listen-on-local'
+					],
+					optionType: OptionType.Type_None,
+					valueName: 'local',
+					info: 'Server will listen on intranet, extranet not access'
+				),
 			],
 			info: 'start a transport bridge server, allow transport server connected this can access each other',
 			rootHandle: (root, valueMap) {
@@ -418,6 +491,7 @@ void main(List<String> arguments) {
 				}
 				int port = valueMap['port'];
 				String rsaPrivate = valueMap['rsaPrivate'];
+				final local = valueMap.containsKey('local');
 
 				if (port == null) {
 					printLackParam(root.selectName, '--port');
@@ -425,6 +499,7 @@ void main(List<String> arguments) {
 				}
 
 				TransportServer(
+					isLocal: local,
 					localPort: port,
 					transaction: BridgeServerTransaction(
 						logInterface: const ConsoleLogInterface(),
@@ -571,6 +646,11 @@ void printUnknown(String msg, {String whose, String optionName}) {
 	print('');
 }
 
+
+void printWarn(String msg) {
+	ANSIPrinter().printRGB('Warn: $msg', fColor: 0xFFFF00);
+}
+
 void printLackParam(String whose, String what) {
 	ANSIPrinter().printRGB('Error: `$whose` miss `$what` parameter', fColor: 0xFF0000);
 }
@@ -628,7 +708,7 @@ void printVersion() {
 	ANSIPrinter()..print('transport, author CimZzz, version code ', breakLine: false)
 	..printRGB('$kVersion', fColor: 0x00BF00, bColor: 0xFFFFFF)
 	..print('base on ', breakLine: false)
-	..printRGB('transport: 1.0.5', fColor: 0x00BF00, bColor: 0xFFFFFF)
+	..printRGB('transport: 1.0.6', fColor: 0x00BF00, bColor: 0xFFFFFF)
 	..print('contact with me:', breakLine: false)
 	..printRGB('a1950207@gmail.com', fColor: 0x00BF00, bColor: 0xFFFFFF)
 	..print('');
