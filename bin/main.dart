@@ -2,7 +2,7 @@ import 'package:console_cmd/console_cmd.dart';
 import 'package:transport/transport.dart';
 import 'package:transport_bin/option.dart';
 
-const kVersion = '1.0.3';
+const kVersion = '1.0.4';
 
 void main(List<String> arguments) {
 	if (arguments.isEmpty) {
@@ -423,6 +423,8 @@ void main(List<String> arguments) {
 						isCustomTransport: customAddress,
 						bridgeAddress: bridgeAddress,
 						bridgePort: bridgePort,
+						peerAddress: peerAddress,
+						peerPort: peerPort,
 						isPeerCustomTransport: isPeerCustomTransport,
 						rsaPublicKeyPath: rsaPublic,
 					)
