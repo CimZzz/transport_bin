@@ -7,7 +7,9 @@ environment:
   sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
-  transport: ^1.0.6
+  args: ^1.6.0
+  transport:
+    path: /Users/wangyanxiong/Documents/IDEAProject/transport
   console_cmd: ^1.0.5
 
 dev_dependencies:
